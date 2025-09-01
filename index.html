@@ -305,20 +305,21 @@
 
             const columnsToShow = [
                 '실험 일자', '실험 장비', '실험 구분', '제품 TYPE', '실험 제품', 
-                '설정토크', '내경1', '내경2', '비틀림 강성', 
+                '설정토크', '내경1', '내경2', '실험 비틀림강성', '카탈로그 비틀림강성',
                 '데이터 취득 횟수', '비고'
             ];
             
             const columnWidths = {
                 '실험 일자': 'w-[8%]',
-                '실험 장비': 'w-[12%]',
+                '실험 장비': 'w-[10%]',
                 '실험 구분': 'w-[8%]',
                 '제품 TYPE': 'w-[10%]',
-                '실험 제품': 'w-[12%]',
-                '설정토크': 'w-[7%]',
+                '실험 제품': 'w-[10%]',
+                '설정토크': 'w-[6%]',
                 '내경1': 'w-[5%]',
                 '내경2': 'w-[5%]',
-                '비틀림 강성': 'w-[8%]',
+                '실험 비틀림강성': 'w-[8%]',
+                '카탈로그 비틀림강성': 'w-[8%]',
                 '데이터 취득 횟수': 'w-[8%]',
                 '비고': 'w-auto'
             };
@@ -351,7 +352,7 @@
                     td.className = tdClasses;
                     
                     let value = rowData[header] || '';
-                    if (header.includes('비틀림 강성') && value) {
+                    if (header.includes('비틀림강성') && value) {
                         const numericValue = parseFloat(String(value).replace(/,/g, ''));
                         if (!isNaN(numericValue)) {
                             value = numericValue.toLocaleString('en-US');
@@ -579,3 +580,4 @@
     </script>
 </body>
 </html>
+
