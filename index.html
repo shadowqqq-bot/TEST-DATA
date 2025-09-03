@@ -14,6 +14,48 @@
         .tab-content.active { display: block; }
         .loader { border: 4px solid #f3f3f3; border-radius: 50%; border-top: 4px solid #3498db; width: 40px; height: 40px; animation: spin 2s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* 모바일 반응형 테이블 스타일 */
+        @media screen and (max-width: 768px) {
+            #results-table {
+                border: 0;
+                table-layout: auto;
+            }
+            #results-table thead {
+                display: none; /* 모바일에서 ahe */
+            }
+            #results-table tr {
+                display: block;
+                margin-bottom: 1rem;
+                border: 1px solid #e2e8f0;
+                border-radius: 0.5rem;
+                box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+                padding: 0.5rem;
+            }
+            #results-table td {
+                display: block;
+                text-align: right !important; /* 값은 오른쪽 정렬 */
+                padding-left: 50%;
+                position: relative;
+                border-bottom: 1px solid #f3f4f6;
+                padding-top: 0.75rem;
+                padding-bottom: 0.75rem;
+            }
+            #results-table td:last-child {
+                border-bottom: 0;
+            }
+            #results-table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 1rem;
+                width: calc(50% - 1.5rem);
+                padding-right: 10px;
+                white-space: nowrap;
+                text-align: left !important;
+                font-weight: 600;
+                color: #374151;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen py-12">
@@ -96,7 +138,7 @@
                     <p id="no-results" class="text-center text-gray-500 hidden">조회된 데이터가 없습니다.</p>
                     <div class="overflow-x-auto">
                         <table id="results-table" class="min-w-full hidden w-full table-fixed">
-                            <thead class="bg-gray-100"></thead>
+                            <thead></thead>
                             <tbody class="bg-white"></tbody>
                         </table>
                     </div>
@@ -369,6 +411,7 @@
                         tdClasses += ' text-center';
                     }
                     td.className = tdClasses;
+                    td.setAttribute('data-label', header);
                     
                     let value = rowData[header] || '';
                     if (header.includes('실험 비틀림강성') && value) {
