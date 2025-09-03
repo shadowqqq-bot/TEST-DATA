@@ -111,7 +111,8 @@
             '실험 일자', '실험 장비', '실험 구분', '실험,작성자', '제품 TYPE', '실험 제품', 
             '고객사', '설정토크 (N.m)', '실험 최대토크 (N.m)', '실험 최소토크 (N.m)', 
             '실험 최대각도 (deg)', '실험 최소각도 (deg)', '내경1 (mm)', '내경2 (mm)', 
-            '축삽입길이 - 내경1 (mm)', '축삽입길이 - 내경2 (mm)', '비틀림 강성 (N.m/rad)', 
+            '축삽입길이 - 내경1 (mm)', '축삽입길이 - 내경2 (mm)', 
+            '실험 비틀림강성 (N.m/rad)', '카탈로그 비틀림강성 (N.m/rad)',
             '데이터 취득 횟수(내구성)', '실험 속도(내구성, Hz)', '비고'
         ];
         
@@ -135,6 +136,18 @@
         const productDropdownTrigger = document.getElementById('search-product-trigger');
         const productDropdownOptions = document.getElementById('search-product-options');
 
+        function formatNumberWithCommas(e) {
+            let value = e.target.value.replace(/[^0-9.]/g, '');
+            let parts = value.split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            e.target.value = parts.join('.');
+        }
+        
+        function formatIntegerWithCommas(e) {
+            let value = e.target.value.replace(/[^0-9]/g, '');
+            e.target.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
         function createFormFields() {
             SHEET_HEADERS.forEach(header => {
                 const div = document.createElement('div');
@@ -153,7 +166,7 @@
                     const placeholder = new Option("장비를 선택하세요", "", true, true);
                     placeholder.disabled = true;
                     fieldElement.options.add(placeholder);
-                    ['1호기(기산-20N.m)', '2호기(개조-200N.m)', '3호기(기산-2,000N.m)', '4호기(경성-50N.m)', '5호기(경성-1,000N.m)', '6호기(기산서보-200N.m)', '7호기(기산서보-50N.m)'].forEach(o => fieldElement.options.add(new Option(o, o)));
+                    ['1호기(기산-20N.m)', '2호기(개조-200N.m)', '3호기(기산-2,000N.m)', '4호기(경성-50N.m)', '5호기(경성-1,000N.m)', '6호기(기산서보-200N.m)', '7호기(기산서보-20N.m)'].forEach(o => fieldElement.options.add(new Option(o, o)));
                 } else if (header === '실험 구분') {
                     fieldElement = document.createElement('select');
                     const placeholder = new Option("구분을 선택하세요", "", true, true);
@@ -167,7 +180,10 @@
                     fieldElement = document.createElement('input');
                     fieldElement.type = 'text';
                     fieldElement.disabled = true;
-                } else if (header === '비틀림 강성 (N.m/rad)') {
+                    if(header === '데이터 취득 횟수(내구성)') {
+                        fieldElement.addEventListener('input', formatIntegerWithCommas);
+                    }
+                } else if (header === '실험 비틀림강성 (N.m/rad)') {
                     fieldElement = document.createElement('input');
                     fieldElement.type = 'text'; 
                     fieldElement.disabled = true;
@@ -175,12 +191,7 @@
                     fieldElement.name = header;
                     fieldElement.className = "mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus-outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-50";
 
-                    fieldElement.addEventListener('input', (e) => {
-                        let value = e.target.value.replace(/[^0-9.]/g, '');
-                        let parts = value.split('.');
-                        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                        e.target.value = parts.join('.');
-                    });
+                    fieldElement.addEventListener('input', formatIntegerWithCommas);
 
                     const checkboxContainer = document.createElement('div');
                     checkboxContainer.className = "mt-2 flex items-center";
@@ -190,7 +201,7 @@
                     const checkboxLabel = document.createElement('label');
                     checkboxLabel.htmlFor = 'enable-torsional-stiffness';
                     checkboxLabel.className = 'ml-2 block text-sm text-gray-900';
-                    checkboxLabel.textContent = '비틀림 강성 직접입력';
+                    checkboxLabel.textContent = '실험 비틀림강성 직접입력';
                     checkbox.addEventListener('change', (e) => {
                         const isChecked = e.target.checked;
                         fieldElement.disabled = !isChecked; fieldElement.required = isChecked;
@@ -204,7 +215,12 @@
                     div.append(label, fieldElement, checkboxContainer);
                     fieldsContainer.appendChild(div);
                     return;
-                } else {
+                } else if (header === '카탈로그 비틀림강성 (N.m/rad)') {
+                    fieldElement = document.createElement('input');
+                    fieldElement.type = 'text';
+                    fieldElement.addEventListener('input', formatNumberWithCommas);
+                }
+                else {
                     fieldElement = document.createElement('input');
                     fieldElement.type = (header === '실험 일자') ? 'date' : 'text';
                 }
@@ -233,11 +249,14 @@
             buttonText.classList.add('hidden'); buttonSpinner.classList.remove('hidden');
             
             const formData = new FormData(form);
-            const stiffnessInput = document.getElementById('field-비틀림 강성 (N.m/rad)');
-            if (stiffnessInput) {
-                const rawValue = stiffnessInput.value.replace(/,/g, '');
-                formData.set('비틀림 강성 (N.m/rad)', rawValue);
-            }
+
+            ['실험 비틀림강성 (N.m/rad)', '카탈로그 비틀림강성 (N.m/rad)', '데이터 취득 횟수(내구성)'].forEach(header => {
+                const input = document.getElementById(`field-${header}`);
+                if (input && input.value) {
+                    const rawValue = input.value.replace(/,/g, '');
+                    formData.set(header, rawValue);
+                }
+            });
 
             const data = {};
             formData.forEach((value, key) => { data[key] = value; });
@@ -247,7 +266,7 @@
                 if (shouldReset) {
                     form.reset();
                     document.getElementById('enable-torsional-stiffness').checked = false;
-                    const stiffnessInput = document.getElementById('field-비틀림 강성 (N.m/rad)');
+                    const stiffnessInput = document.getElementById('field-실험 비틀림강성 (N.m/rad)');
                     stiffnessInput.disabled = true; stiffnessInput.required = false;
                     const dataCountInput = document.getElementById('field-데이터 취득 횟수(내구성)');
                     dataCountInput.disabled = true; dataCountInput.required = false;
@@ -305,7 +324,7 @@
 
             const columnsToShow = [
                 '실험 일자', '실험 장비', '실험 구분', '제품 TYPE', '실험 제품', 
-                '설정토크', '내경1', '내경2', '실험 비틀림강성', '카탈로그 비틀림강성',
+                '설정토크', '내경1', '내경2', '실험 비틀림강성', '카탈로그 비틀림 강성',
                 '데이터 취득 횟수', '비고'
             ];
             
@@ -319,7 +338,7 @@
                 '내경1': 'w-[5%]',
                 '내경2': 'w-[5%]',
                 '실험 비틀림강성': 'w-[8%]',
-                '카탈로그 비틀림강성': 'w-[8%]',
+                '카탈로그 비틀림 강성': 'w-[8%]',
                 '데이터 취득 횟수': 'w-[8%]',
                 '비고': 'w-auto'
             };
@@ -352,7 +371,12 @@
                     td.className = tdClasses;
                     
                     let value = rowData[header] || '';
-                    if (header.includes('비틀림강성') && value) {
+                    if (header.includes('실험 비틀림강성') && value) {
+                        const numericValue = Math.round(parseFloat(String(value).replace(/,/g, '')));
+                        if (!isNaN(numericValue)) {
+                            value = numericValue.toLocaleString('en-US');
+                        }
+                    } else if ((header.includes('카탈로그 비틀림 강성') || header.includes('데이터 취득 횟수')) && value) {
                         const numericValue = parseFloat(String(value).replace(/,/g, ''));
                         if (!isNaN(numericValue)) {
                             value = numericValue.toLocaleString('en-US');
